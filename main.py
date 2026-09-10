@@ -1,5 +1,6 @@
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
 
 # --------------------------------------------------
@@ -171,10 +172,91 @@ st.caption(
 
 
 # ==================================================
-# 그래프 3
+# 그래프 3: 일별 TOP 10 총관객 수 변화 (영역 그래프)
 # ==================================================
 st.divider()
 
-st.header("3. 다음 그래프")
+st.header("3. 날짜별 TOP 10 영화 총 관객 수 변화 (영역 그래프)")
 
-st.info("여기에 세 번째 그래프를 추가할 예정입니다.")
+# 날짜별 일관객 합계 계산
+daily_sum = (
+    df.groupby("날짜")["일관객"]
+    .sum()
+    .reset_index()
+    .sort_values("날짜")
+)
+
+# 영역 그래프 생성
+fig3 = px.area(
+    daily_sum,
+    x="날짜",
+    y="일관객",
+    title="날짜별 TOP 10 영화 일관객 합계 변화",
+    labels={
+        "날짜": "날짜",
+        "일관객": "TOP 10 일관객 합계",
+    },
+)
+
+# 관객 수 합계 상위 3개 날짜 추출
+top3_days = daily_sum.nlargest(3, "일관객")
+
+# 상위 3일 포인트를 강조 강조 포인트로 추가
+fig3.add_trace(
+    go.Scatter(
+        x=top3_days["날짜"],
+        y=top3_days["일관객"],
+        mode="markers",
+        marker=dict(size=10, color="red"),
+        name="관객 수 TOP 3일",
+        hoverinfo="skip",
+    )
+)
+
+# 상위 3개 날짜에 텍스트 주석(Annotation) 표시
+for idx, row in top3_days.iterrows():
+    date_str = row["날짜"].strftime("%Y-%m-%d")
+    audience_cnt = f"{row['일관객']:,}명"
+    
+    fig3.add_annotation(
+        x=row["날짜"],
+        y=row["일관객"],
+        text=f"<b>{date_str}</b><br>({audience_cnt})",
+        showarrow=True,
+        arrowhead=2,
+        arrowsize=1,
+        arrowwidth=2,
+        arrowcolor="red",
+        ax=0,
+        ay=-40,
+        font=dict(size=12, color="crimson"),
+        bgcolor="white",
+        bordercolor="red",
+        borderwidth=1,
+    )
+
+fig3.update_traces(
+    selector=dict(type="scatter", mode="lines"),
+    hovertemplate=(
+        "날짜: %{x|%Y-%m-%d}<br>"
+        "TOP 10 일관객 합계: %{y:,}명"
+        "<extra></extra>"
+    ),
+)
+
+fig3.update_layout(
+    hovermode="x unified",
+    xaxis_title="날짜",
+    yaxis_title="TOP 10 일관객 합계",
+)
+
+st.plotly_chart(
+    fig3,
+    use_container_width=True,
+)
+
+st.markdown("**이 그래프로 알 수 있는 것**")
+st.caption(
+    "날짜별 TOP 10 영화의 전체 관객 수 합계 변화를 영역 그래프 형태로 보여줍니다. "
+    "붉은색으로 표시된 날짜는 해당 기간 중 전체 관객 동원력이 가장 높았던 상위 3일입니다."
+)
