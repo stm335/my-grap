@@ -201,7 +201,7 @@ fig3 = px.area(
 # 관객 수 합계 상위 3개 날짜 추출
 top3_days = daily_sum.nlargest(3, "일관객")
 
-# 상위 3일 포인트를 강조 강조 포인트로 추가
+# 상위 3일 포인트를 강조 포인트로 추가
 fig3.add_trace(
     go.Scatter(
         x=top3_days["날짜"],
@@ -259,4 +259,69 @@ st.markdown("**이 그래프로 알 수 있는 것**")
 st.caption(
     "날짜별 TOP 10 영화의 전체 관객 수 합계 변화를 영역 그래프 형태로 보여줍니다. "
     "붉은색으로 표시된 날짜는 해당 기간 중 전체 관객 동원력이 가장 높았던 상위 3일입니다."
+)
+
+
+# ==================================================
+# 그래프 4: 누적 관객 TOP 10 영화 (가로 막대그래프)
+# ==================================================
+st.divider()
+
+st.header("4. 기간 내 누적 관객 TOP 10 영화")
+
+# 영화별 총 관객 수 및 10위권 진입 날수 집계
+top10_movies_df = (
+    df.groupby("영화명")
+    .agg(
+        누적관객=("일관객", "sum"),
+        진입일수=("날짜", "nunique")
+    )
+    .reset_index()
+    .nlargest(10, "누적관객")
+    .sort_values("누적관객", ascending=True)  # 가로 막대에서 위쪽에 상위 항목이 오도록 정렬
+)
+
+# Plotly 가로 막대그래프 생성
+fig4 = px.bar(
+    top10_movies_df,
+    x="누적관객",
+    y="영화명",
+    orientation="h",
+    title="기간 내 누적 관객 수 TOP 10",
+    labels={
+        "누적관객": "총 관객 수 (명)",
+        "영화명": "영화 제목",
+    },
+    hover_data={
+        "진입일수": True,
+        "누적관객": ":,",  # 천 단위 콤마 추가
+    },
+)
+
+# 툴팁 형태 설정 (10위권 진입 날수 포함)
+fig4.update_traces(
+    hovertemplate=(
+        "<b>%{y}</b><br>"
+        "총 누적관객: %{x:,}명<br>"
+        "10위권 진입일수: %{customdata[0]}일"
+        "<extra></extra>"
+    ),
+    customdata=top10_movies_df[["진입일수"]].values,
+    marker_color="teal",
+)
+
+fig4.update_layout(
+    xaxis_title="총 누적관객 수 (명)",
+    yaxis_title="영화 제목",
+)
+
+st.plotly_chart(
+    fig4,
+    use_container_width=True,
+)
+
+st.markdown("**이 그래프로 알 수 있는 것**")
+st.caption(
+    "해당 기간 동안 가장 많은 관객을 동원한 상위 10개 영화를 순위대로 보여줍니다. "
+    "막대에 마우스를 올리면 해당 영화가 TOP 10(10위권)에 차트인한 총 날짜 수를 함께 확인할 수 있습니다."
 )
