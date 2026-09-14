@@ -59,14 +59,19 @@ with st.expander("데이터 확인하기"):
 # ==================================================
 st.header("1. 영화별 날짜별 일관객 변화")
 
-movie_list = sorted(df["영화명"].dropna().unique())
+movie_list = sorted(
+    df["영화명"].dropna().unique()
+)
 
 selected_movie = st.selectbox(
     "영화를 선택하세요.",
     movie_list,
 )
 
-movie_df = df[df["영화명"] == selected_movie].sort_values("날짜")
+movie_df = (
+    df[df["영화명"] == selected_movie]
+    .sort_values("날짜")
+)
 
 
 fig1 = px.line(
@@ -103,8 +108,8 @@ st.plotly_chart(
 
 st.markdown("**이 그래프로 알 수 있는 것**")
 st.caption(
-    "선택한 영화의 날짜별 일관객 변화를 "
-    "시간의 흐름에 따라 확인할 수 있습니다."
+    "달마다(시간마다) 관객의 수가 어떻게 변해왔는지 "
+    "한눈에 알기가 쉽다."
 )
 
 
@@ -113,7 +118,9 @@ st.caption(
 # ==================================================
 st.divider()
 
-st.header("2. 누적 관객 TOP 5 영화의 일별 관객수 변화 비교")
+st.header(
+    "2. 누적 관객 TOP 5 영화의 일별 관객수 변화 비교"
+)
 
 # 기간 내 누적 일관객 합계 상위 5개 영화 추출
 top5_movies = (
@@ -125,9 +132,10 @@ top5_movies = (
 )
 
 # 상위 5개 영화 데이터 필터링 및 날짜 정렬
-top5_df = df[
-    df["영화명"].isin(top5_movies)
-].sort_values("날짜")
+top5_df = (
+    df[df["영화명"].isin(top5_movies)]
+    .sort_values("날짜")
+)
 
 
 # Plotly 다중 선 그래프 생성
@@ -169,9 +177,7 @@ st.plotly_chart(
 
 st.markdown("**이 그래프로 알 수 있는 것**")
 st.caption(
-    "해당 기간 동안 누적 관객 수가 가장 많았던 상위 5개 영화의 "
-    "일별 관객 수 추이를 한눈에 비교할 수 있습니다. "
-    "오른쪽 범례 항목을 클릭하면 특정 영화의 선을 켜거나 끌 수 있습니다."
+    "누적관객 5위의 영화의 관객 변화를 한눈에 볼 수 있다."
 )
 
 
@@ -180,7 +186,9 @@ st.caption(
 # ==================================================
 st.divider()
 
-st.header("3. 날짜별 TOP 10 영화 총 관객 수 변화 (영역 그래프)")
+st.header(
+    "3. 날짜별 TOP 10 영화 총 관객 수 변화 (영역 그래프)"
+)
 
 # 날짜별 일관객 합계 계산
 daily_sum = (
@@ -203,7 +211,10 @@ fig3 = px.area(
 )
 
 # 관객 수 합계 상위 3개 날짜 추출
-top3_days = daily_sum.nlargest(3, "일관객")
+top3_days = daily_sum.nlargest(
+    3,
+    "일관객",
+)
 
 # 상위 3일 포인트 강조
 fig3.add_trace(
@@ -222,13 +233,20 @@ fig3.add_trace(
 
 # 상위 3개 날짜에 텍스트 주석 표시
 for idx, row in top3_days.iterrows():
-    date_str = row["날짜"].strftime("%Y-%m-%d")
+
+    date_str = row["날짜"].strftime(
+        "%Y-%m-%d"
+    )
+
     audience_cnt = f"{row['일관객']:,}명"
 
     fig3.add_annotation(
         x=row["날짜"],
         y=row["일관객"],
-        text=f"<b>{date_str}</b><br>({audience_cnt})",
+        text=(
+            f"<b>{date_str}</b>"
+            f"<br>({audience_cnt})"
+        ),
         showarrow=True,
         arrowhead=2,
         arrowsize=1,
@@ -271,10 +289,8 @@ st.plotly_chart(
 
 st.markdown("**이 그래프로 알 수 있는 것**")
 st.caption(
-    "날짜별 TOP 10 영화의 전체 관객 수 합계 변화를 "
-    "영역 그래프 형태로 보여줍니다. "
-    "붉은색으로 표시된 날짜는 해당 기간 중 전체 관객 동원력이 "
-    "가장 높았던 상위 3일입니다."
+    "날짜별 10위 영화의 총 관객수의 합이므로 "
+    "특정 날짜에 얼마나 관객이 몰렸는지 알 수 있다."
 )
 
 
@@ -293,12 +309,16 @@ top10_movies_df = (
         진입일수=("날짜", "nunique"),
     )
     .reset_index()
-    .nlargest(10, "누적관객")
+    .nlargest(
+        10,
+        "누적관객",
+    )
     .sort_values(
         "누적관객",
         ascending=True,
     )
 )
+
 
 # Plotly 가로 막대그래프 생성
 fig4 = px.bar(
@@ -325,7 +345,9 @@ fig4.update_traces(
         "10위권 진입일수: %{customdata[0]}일"
         "<extra></extra>"
     ),
-    customdata=top10_movies_df[["진입일수"]].values,
+    customdata=top10_movies_df[
+        ["진입일수"]
+    ].values,
     marker_color="teal",
 )
 
@@ -341,10 +363,8 @@ st.plotly_chart(
 
 st.markdown("**이 그래프로 알 수 있는 것**")
 st.caption(
-    "해당 기간 동안 가장 많은 관객을 동원한 상위 10개 영화를 "
-    "순위대로 보여줍니다. "
-    "막대에 마우스를 올리면 해당 영화가 TOP 10(10위권)에 "
-    "차트인한 총 날짜 수를 함께 확인할 수 있습니다."
+    "총 기간에 얼마나 특정 영화를 많이 본 건지 "
+    "다른 영화와 비교하기가 쉽다."
 )
 
 
@@ -361,9 +381,11 @@ st.header("5. 월 × 요일별 일관객 합계")
 heatmap_df = df.copy()
 
 # 월 추출
-heatmap_df["월"] = heatmap_df["날짜"].dt.month
+heatmap_df["월"] = (
+    heatmap_df["날짜"].dt.month
+)
 
-# 요일 추출
+# 요일 순서
 # pandas의 dayofweek:
 # 월요일=0, 화요일=1, ..., 일요일=6
 weekday_order = [
@@ -380,11 +402,13 @@ weekday_map = dict(
     enumerate(weekday_order)
 )
 
+# 요일 추출
 heatmap_df["요일"] = (
     heatmap_df["날짜"]
     .dt.dayofweek
     .map(weekday_map)
 )
+
 
 # --------------------------------------------------
 # 월 × 요일별 일관객 합계 계산
@@ -398,6 +422,7 @@ monthly_weekday_sum = (
     .reset_index()
 )
 
+
 # --------------------------------------------------
 # 히트맵용 피벗 테이블 생성
 # --------------------------------------------------
@@ -408,9 +433,12 @@ heatmap_pivot = (
         columns="요일",
         values="일관객",
     )
-    .reindex(columns=weekday_order)
+    .reindex(
+        columns=weekday_order
+    )
     .fillna(0)
 )
+
 
 # --------------------------------------------------
 # 히트맵 생성
@@ -436,20 +464,22 @@ fig5 = go.Figure(
     )
 )
 
+
 fig5.update_layout(
     title="월 × 요일별 일관객 합계",
     xaxis_title="요일",
     yaxis_title="월",
 )
 
+
 st.plotly_chart(
     fig5,
     use_container_width=True,
 )
 
+
 st.markdown("**이 그래프로 알 수 있는 것**")
 st.caption(
-    "각 월의 요일별 일관객 합계를 색의 진하기로 비교할 수 있습니다. "
-    "색이 진할수록 해당 월과 요일에 영화관을 찾은 관객 수가 많았다는 의미입니다. "
-    "요일은 월요일부터 일요일 순서로 표시됩니다."
+    "특정 달의 특정 요일에 얼마나 사람이 몰렸는지 "
+    "한눈에 볼 수 있다."
 )
