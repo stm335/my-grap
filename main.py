@@ -109,7 +109,7 @@ st.caption(
 
 
 # ==================================================
-# 그래프 2: 누적 관객 TOP 5 영화 비교 (다중 선 그래프)
+# 그래프 2: 누적 관객 TOP 5 영화 비교
 # ==================================================
 st.divider()
 
@@ -125,9 +125,12 @@ top5_movies = (
 )
 
 # 상위 5개 영화 데이터 필터링 및 날짜 정렬
-top5_df = df[df["영화명"].isin(top5_movies)].sort_values("날짜")
+top5_df = df[
+    df["영화명"].isin(top5_movies)
+].sort_values("날짜")
 
-# Plotly 다중 선 그래프 생성 (color 옵션으로 영화 구분)
+
+# Plotly 다중 선 그래프 생성
 fig2 = px.line(
     top5_df,
     x="날짜",
@@ -142,7 +145,7 @@ fig2 = px.line(
     },
 )
 
-# 툴팁 및 레이아웃 설정
+# 툴팁 설정
 fig2.update_traces(
     hovertemplate=(
         "영화명: %{fullData.name}<br>"
@@ -166,13 +169,14 @@ st.plotly_chart(
 
 st.markdown("**이 그래프로 알 수 있는 것**")
 st.caption(
-    "해당 기간 동안 누적 관객 수가 가장 많았던 상위 5개 영화의 일별 관객 수 추이를 한눈에 비교할 수 있습니다. "
+    "해당 기간 동안 누적 관객 수가 가장 많았던 상위 5개 영화의 "
+    "일별 관객 수 추이를 한눈에 비교할 수 있습니다. "
     "오른쪽 범례 항목을 클릭하면 특정 영화의 선을 켜거나 끌 수 있습니다."
 )
 
 
 # ==================================================
-# 그래프 3: 일별 TOP 10 총관객 수 변화 (영역 그래프)
+# 그래프 3: 일별 TOP 10 총관객 수 변화
 # ==================================================
 st.divider()
 
@@ -201,23 +205,26 @@ fig3 = px.area(
 # 관객 수 합계 상위 3개 날짜 추출
 top3_days = daily_sum.nlargest(3, "일관객")
 
-# 상위 3일 포인트를 강조 포인트로 추가
+# 상위 3일 포인트 강조
 fig3.add_trace(
     go.Scatter(
         x=top3_days["날짜"],
         y=top3_days["일관객"],
         mode="markers",
-        marker=dict(size=10, color="red"),
+        marker=dict(
+            size=10,
+            color="red",
+        ),
         name="관객 수 TOP 3일",
         hoverinfo="skip",
     )
 )
 
-# 상위 3개 날짜에 텍스트 주석(Annotation) 표시
+# 상위 3개 날짜에 텍스트 주석 표시
 for idx, row in top3_days.iterrows():
     date_str = row["날짜"].strftime("%Y-%m-%d")
     audience_cnt = f"{row['일관객']:,}명"
-    
+
     fig3.add_annotation(
         x=row["날짜"],
         y=row["일관객"],
@@ -229,14 +236,21 @@ for idx, row in top3_days.iterrows():
         arrowcolor="red",
         ax=0,
         ay=-40,
-        font=dict(size=12, color="crimson"),
+        font=dict(
+            size=12,
+            color="crimson",
+        ),
         bgcolor="white",
         bordercolor="red",
         borderwidth=1,
     )
 
+# 영역 그래프의 hover 설정
 fig3.update_traces(
-    selector=dict(type="scatter", mode="lines"),
+    selector=dict(
+        type="scatter",
+        mode="lines",
+    ),
     hovertemplate=(
         "날짜: %{x|%Y-%m-%d}<br>"
         "TOP 10 일관객 합계: %{y:,}명"
@@ -257,13 +271,15 @@ st.plotly_chart(
 
 st.markdown("**이 그래프로 알 수 있는 것**")
 st.caption(
-    "날짜별 TOP 10 영화의 전체 관객 수 합계 변화를 영역 그래프 형태로 보여줍니다. "
-    "붉은색으로 표시된 날짜는 해당 기간 중 전체 관객 동원력이 가장 높았던 상위 3일입니다."
+    "날짜별 TOP 10 영화의 전체 관객 수 합계 변화를 "
+    "영역 그래프 형태로 보여줍니다. "
+    "붉은색으로 표시된 날짜는 해당 기간 중 전체 관객 동원력이 "
+    "가장 높았던 상위 3일입니다."
 )
 
 
 # ==================================================
-# 그래프 4: 누적 관객 TOP 10 영화 (가로 막대그래프)
+# 그래프 4: 누적 관객 TOP 10 영화
 # ==================================================
 st.divider()
 
@@ -274,11 +290,14 @@ top10_movies_df = (
     df.groupby("영화명")
     .agg(
         누적관객=("일관객", "sum"),
-        진입일수=("날짜", "nunique")
+        진입일수=("날짜", "nunique"),
     )
     .reset_index()
     .nlargest(10, "누적관객")
-    .sort_values("누적관객", ascending=True)  # 가로 막대에서 위쪽에 상위 항목이 오도록 정렬
+    .sort_values(
+        "누적관객",
+        ascending=True,
+    )
 )
 
 # Plotly 가로 막대그래프 생성
@@ -294,11 +313,11 @@ fig4 = px.bar(
     },
     hover_data={
         "진입일수": True,
-        "누적관객": ":,",  # 천 단위 콤마 추가
+        "누적관객": ":,",
     },
 )
 
-# 툴팁 형태 설정 (10위권 진입 날수 포함)
+# 툴팁 설정
 fig4.update_traces(
     hovertemplate=(
         "<b>%{y}</b><br>"
@@ -322,6 +341,115 @@ st.plotly_chart(
 
 st.markdown("**이 그래프로 알 수 있는 것**")
 st.caption(
-    "해당 기간 동안 가장 많은 관객을 동원한 상위 10개 영화를 순위대로 보여줍니다. "
-    "막대에 마우스를 올리면 해당 영화가 TOP 10(10위권)에 차트인한 총 날짜 수를 함께 확인할 수 있습니다."
+    "해당 기간 동안 가장 많은 관객을 동원한 상위 10개 영화를 "
+    "순위대로 보여줍니다. "
+    "막대에 마우스를 올리면 해당 영화가 TOP 10(10위권)에 "
+    "차트인한 총 날짜 수를 함께 확인할 수 있습니다."
+)
+
+
+# ==================================================
+# 그래프 5: 월 × 요일별 일관객 합계
+# ==================================================
+st.divider()
+
+st.header("5. 월 × 요일별 일관객 합계")
+
+# --------------------------------------------------
+# 날짜에서 월과 요일 추출
+# --------------------------------------------------
+heatmap_df = df.copy()
+
+# 월 추출
+heatmap_df["월"] = heatmap_df["날짜"].dt.month
+
+# 요일 추출
+# pandas의 dayofweek:
+# 월요일=0, 화요일=1, ..., 일요일=6
+weekday_order = [
+    "월요일",
+    "화요일",
+    "수요일",
+    "목요일",
+    "금요일",
+    "토요일",
+    "일요일",
+]
+
+weekday_map = dict(
+    enumerate(weekday_order)
+)
+
+heatmap_df["요일"] = (
+    heatmap_df["날짜"]
+    .dt.dayofweek
+    .map(weekday_map)
+)
+
+# --------------------------------------------------
+# 월 × 요일별 일관객 합계 계산
+# --------------------------------------------------
+monthly_weekday_sum = (
+    heatmap_df
+    .groupby(
+        ["월", "요일"]
+    )["일관객"]
+    .sum()
+    .reset_index()
+)
+
+# --------------------------------------------------
+# 히트맵용 피벗 테이블 생성
+# --------------------------------------------------
+heatmap_pivot = (
+    monthly_weekday_sum
+    .pivot(
+        index="월",
+        columns="요일",
+        values="일관객",
+    )
+    .reindex(columns=weekday_order)
+    .fillna(0)
+)
+
+# --------------------------------------------------
+# 히트맵 생성
+# --------------------------------------------------
+fig5 = go.Figure(
+    data=go.Heatmap(
+        z=heatmap_pivot.values,
+        x=heatmap_pivot.columns,
+        y=[
+            f"{month}월"
+            for month in heatmap_pivot.index
+        ],
+        colorscale="Blues",
+        colorbar=dict(
+            title="일관객 합계",
+        ),
+        hovertemplate=(
+            "월: %{y}"
+            "<br>요일: %{x}"
+            "<br>일관객 합계: %{z:,}명"
+            "<extra></extra>"
+        ),
+    )
+)
+
+fig5.update_layout(
+    title="월 × 요일별 일관객 합계",
+    xaxis_title="요일",
+    yaxis_title="월",
+)
+
+st.plotly_chart(
+    fig5,
+    use_container_width=True,
+)
+
+st.markdown("**이 그래프로 알 수 있는 것**")
+st.caption(
+    "각 월의 요일별 일관객 합계를 색의 진하기로 비교할 수 있습니다. "
+    "색이 진할수록 해당 월과 요일에 영화관을 찾은 관객 수가 많았다는 의미입니다. "
+    "요일은 월요일부터 일요일 순서로 표시됩니다."
 )
